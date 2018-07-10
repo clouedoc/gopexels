@@ -5,7 +5,7 @@ It has a nice progress bar, and is multi-threaded !
 
 ## Installation
 
-```
+```bash
 go get -u github.com/jesuiscamille/gopexels
 cd $GOPATH/src/github.com/jesuiscamille/gopexels
 make
@@ -13,7 +13,7 @@ make
 
 ## Usage
 
-```
+```bash
 Usage of ./gopexels:
   -amount int
     	The amount of images to download (default 100)
@@ -34,7 +34,7 @@ Note that, if you want a really high number of images, you must increase the def
 ### Invoking 
 ( while on $GOPATH/src/github.com/jesuiscamille/gopexels, after having executed `make` )
 
-```
+```bash
 ./gopexels -query cats -amount 1000 -pageAmount 20 -threads 5
 ```
 
