@@ -1,4 +1,4 @@
-all: gopexels
+all: main
 
-gopexels: *.go
-	go build -o gopexels *.go
+main: *.go
+	go build -o main main.go
