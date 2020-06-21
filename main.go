@@ -10,30 +10,32 @@ import (
 	"regexp"
 	"sync"
 
-	"github.com/cheggaaa/pb"
 	"net/http"
+
+	"github.com/cheggaaa/pb"
 )
 
 const (
 	path string = "./images/"
 )
 
-type Image struct {
+// image represents a Pexels image
+type image struct {
 	URL         string
 	Filename    string
 	downloaded  bool
 	downloading bool
 }
 
-func (i *Image) Downloading() bool {
+func (i *image) Downloading() bool {
 	return i.downloading
 }
 
-func (i *Image) SetDownloading() {
+func (i *image) SetDownloading() {
 	i.downloading = true
 }
 
-func (i *Image) DownloadToDir(dirPath string) (err error) {
+func (i *image) DownloadToDir(dirPath string) (err error) {
 	// download the image
 	resp, err := http.Get(i.URL)
 	if err != nil {
@@ -66,25 +68,25 @@ func (i *Image) DownloadToDir(dirPath string) (err error) {
 	return
 }
 
-func (i *Image) Downloaded() bool {
+func (i *image) Downloaded() bool {
 	return i.downloaded
 }
 
-func NewImage(url string, filename string) *Image {
-	return &Image{
+func newImage(url string, filename string) *image {
+	return &image{
 		URL:      url,
 		Filename: filename,
 	}
 }
 
-// a page contains a number of images
+// Page contains a number of images
 type Page struct {
 	Number int
-	Images []Image
+	Images []image
 }
 
 // AddImage adds an image to a page
-func (p *Page) AddImage(i Image) {
+func (p *Page) AddImage(i image) {
 	p.Images = append(p.Images, i)
 }
 
@@ -127,7 +129,7 @@ func Query(queryString string, amount int) (pages []Page, err error) {
 
 	// the search term does not exist on pexels
 	if noMatch.MatchString(tmpPage1) {
-		err = errors.New("The search term did not return anything on pexels.")
+		err = errors.New("the search term did not return anything on pexels")
 		return
 	}
 
@@ -159,7 +161,7 @@ func Query(queryString string, amount int) (pages []Page, err error) {
 		photoURLs := imageRegex.FindAllString(tmpPage2, -1)
 
 		// if there are no photos left, stop
-		if len(photoURLs) <= 0 {
+		if len(photoURLs) == 0 {
 			break
 		}
 
@@ -167,10 +169,10 @@ func Query(queryString string, amount int) (pages []Page, err error) {
 			Number: pageNb,
 		}
 
-		for _, partImageUrl := range photoURLs {
-			tmpPage.AddImage(Image{
-				URL:      "https://images.pexels.com/" + partImageUrl,
-				Filename: filenameRegex.FindString(partImageUrl),
+		for _, partImageURL := range photoURLs {
+			tmpPage.AddImage(image{
+				URL:      "https://images.pexels.com/" + partImageURL,
+				Filename: filenameRegex.FindString(partImageURL),
 			})
 		}
 
@@ -218,7 +220,7 @@ func main() {
 	// download all the images of all the pages
 	log.Printf("Starting the downloads... Threads: %d\n", threads)
 
-	downloadChan := make(chan Image)
+	downloadChan := make(chan image)
 	stopChan := make(chan int)
 
 	// get the total number of images
@@ -264,8 +266,8 @@ func main() {
 		for _, image := range page.Images {
 			if !image.Downloaded() && !image.Downloading() {
 				var okcontinue bool = true
-				for _, sentUrl := range sent {
-					if image.URL == sentUrl {
+				for _, sentURL := range sent {
+					if image.URL == sentURL {
 						okcontinue = false
 						break
 					}
@@ -273,7 +275,7 @@ func main() {
 
 				if okcontinue {
 					sent = append(sent, image.URL)
-					downloaded += 1
+					downloaded++
 					image.SetDownloading()
 					downloadChan <- image
 					if downloaded >= amount {
@@ -293,7 +295,8 @@ func main() {
 		stopChan <- 0
 	}
 
-	bar.FinishPrint("All images got downloaded !")
+	bar.Finish()
+	log.Println("all images downloaded")
 	log.Println("Waiting for the goroutines to exit...")
 	wg.Wait()
 }
